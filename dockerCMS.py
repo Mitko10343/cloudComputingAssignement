@@ -90,7 +90,7 @@ def containers_log(id):
 def images_remove(id):
     """
     Delete a specific image
-    """
+ '   """
     docker ('rmi', id)
     resp = '{"id": "%s"}' % id
     return Response(response=resp, mimetype="application/json")
