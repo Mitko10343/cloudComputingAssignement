@@ -1,3 +1,9 @@
+#Written By Dimiter Dinkov
+#Student number: C15334276  
+#Cloud Computing Assignment
+
+
+#importing all packages needed
 from flask import Flask, Response, render_template, request
 import json
 from subprocess import Popen, PIPE
@@ -7,6 +13,7 @@ from werkzeug import secure_filename
 
 app = Flask(__name__)
 
+#This route was already completed
 @app.route("/")
 def index():
     return """
@@ -31,7 +38,7 @@ DELETE /images/<id>                 Delete a specific image
 DELETE /images                      Delete all images
 
 """
-
+#This route was also completed
 @app.route('/containers', methods=['GET'])
 def containers_index():
     """
@@ -52,61 +59,84 @@ def containers_index():
 
     return Response(response=resp, mimetype="application/json")
 
+#
 @app.route('/images', methods=['GET'])
 def images_index():
     """
     List all images 
     
     Complete the code below generating a valid response. 
-    """
+ 
+ """
+    #Get the result from the command docker images and assign it to output
     output = docker('images')
+    #parse output to an array and assign it to resp
     resp = json.dumps(docker_ps_to_array(output))
-
+    #return the response aka. list of all images
     return Response(response=resp, mimetype="application/json")
 
+#inspecting a container with specific id
+#pass in the id from the route
 @app.route('/containers/<id>', methods=['GET'])
 def containers_show(id):
     """
     Inspect specific container
 
     """
+    #assign the result from the command docker inspect id
+    #where id is passed in from the browser
     output = docker('inspect',id)
+    #assign the output to resp
     resp = output
-       
+    #return resp       
     return Response(response=resp, mimetype="application/json")
 
+#get the logs for a specific container
+#pass in the id from route
 @app.route('/containers/<id>/logs', methods=['GET'])
 def containers_log(id):
     """
     Dump specific container logs
 
     """
+    #assign the result from the commad docker logs id(where id is passed in from browser) to output
     output = docker('logs',id)
+    #assign output to resp
     resp = output
+    #return a response
     return Response(response=resp, mimetype="application/json")
 
-
+#delete a specific image by passing in an id
+#id is passed in by http 
 @app.route('/images/<id>', methods=['DELETE'])
 def images_remove(id):
     """
     Delete a specific image
  '   """
+    #run the docker command for removing and image 
     docker ('rmi', id)
+    #resp = the id of the deleted image
     resp = '{"id": "%s"}' % id
     return Response(response=resp, mimetype="application/json")
 
+#delete a specific container by passing in an id
+#id is passed in by http
 @app.route('/containers/<id>', methods=['DELETE'])
 def containers_remove(id):
     """
     Delete a specific container - must be already stopped/killed
 
     """
+    #run command to stop the container
     docker ('stop',id)
+    #run docker command to remove the container
     docker ('rm',id)
+    #resp = id of the container that was deleted
     resp = '{"id":%s"}' % id
-
+    
     return Response(response=resp, mimetype="application/json")
 
+#route to delete all containers
 @app.route('/containers', methods=['DELETE'])
 def containers_remove_all():
     """
@@ -114,31 +144,39 @@ def containers_remove_all():
 
     """
 
+    #assign the result of docker ps -a to a variable
     all_containers = docker('ps','-a')
+    #turn this variable into array and assign it to containers
     containers = docker_ps_to_array(all_containers)
     
+    #go in a for loop and for every index in the array of containers stop 
+    #the container with the corresponding id and remove it
     for container in containers:
         docker('stop',container["id"])
     for container in containers:
         docker('rm',container["id"])
 
     resp = 'Containers deleted'
-
+    #write a response when done
     return Response(response=resp, mimetype="application/json")
 
+#deleting all images
 @app.route('/images', methods=['DELETE'])
 def images_remove_all():
     """
     Force remove all images - dangrous!
 
     """
+    #get the result of docker images and assign it to a variable
     all_images = docker('images')
+    #turn this variable to an array and assign it to images
     images = docker_ps_to_array(all_images)
-
+    #in a for loop delete every image 
     for image in images:
         docker('rmi',image['id'],'-f')
 
     resp = 'Images deleted'
+    #return a response when done
     return Response(response=resp, mimetype="application/json")
 
 
